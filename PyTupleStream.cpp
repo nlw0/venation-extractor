@@ -13,9 +13,6 @@
  *    limitations under the License.
  */
 
-#include <Python.h>
-#include <exception>
-
 #include "PyTupleStream.h"
 
 TupleStream::TupleStream(PyObject *input_args) {
@@ -27,6 +24,13 @@ TupleStream::TupleStream(PyObject *input_args) {
 
 bool TupleStream::fail() {
   return failbit;
+}
+
+void TupleStream::set_fail_generic(std::string s) {
+  char err_msg[1024];
+  snprintf(err_msg, 1024, "%s for parameter number %d.", s.c_str(), count + 1);
+  PyErr_SetString(PyExc_TypeError, err_msg);
+  failbit = true;
 }
 
 void TupleStream::set_fail_nargs() {
@@ -86,6 +90,9 @@ TupleStream& operator>>(TupleStream &input, double &x) {
   catch (TupleStream::ArgsCountException) { input.set_fail_nargs(); }
   catch (TupleStream::TypeErrorException) { input.set_fail_typeerror(); }
   catch (TupleStream::FailStateException) { }
+  catch (std::exception e) { 
+    
+  }
   
   input.count++;
   return input;
@@ -106,15 +113,16 @@ TupleStream& operator>>(TupleStream &input, TupleStreamExtractable &x) {
     try {
       x = po;
     }
+    catch (std::runtime_error &e) { throw e; }
     catch (std::exception) {
       throw TupleStream::TypeErrorException();
     }
   }
+  catch (std::runtime_error &e) { input.set_fail_generic(e.what()); }
   catch (TupleStream::ArgsCountException) { input.set_fail_nargs(); }
   catch (TupleStream::TypeErrorException) { input.set_fail_typeerror(); }
-  catch (TupleStream::FailStateException) { }
-  
+  catch (TupleStream::FailStateException) { } 
+ 
   input.count++;
   return input;
 }
-

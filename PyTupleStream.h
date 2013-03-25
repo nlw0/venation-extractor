@@ -17,6 +17,8 @@
 #define PYTUPLESTREAM_H
 #include <Python.h>
 #include <exception>
+#include <string>
+#include <stdexcept>
 
 class TupleStreamExtractable {
 public:
@@ -41,6 +43,7 @@ public:
   TupleStream(PyObject *input_args);
 
   bool fail();
+  void set_fail_generic(std::string);
   void set_fail_nargs();
   void set_fail_typeerror();
   bool eof();

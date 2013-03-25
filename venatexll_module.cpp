@@ -18,10 +18,13 @@ static PyObject * smooth(PyObject *self, PyObject *args)
   ArrayManager alpha;
   ArrayManager beta;
   
+  alpha.set_dimensions(2);
+  beta.set_dimensions(2);
+
   qq >> alpha >> beta;
-  
+
   if (qq.fail()) return NULL;
-  
+
   npy_int j, k;
   for(j = 1; j < alpha.size[0] - 1; j++) {
     for(k = 1; k < alpha.size[1] - 1; k++) {
@@ -29,7 +32,7 @@ static PyObject * smooth(PyObject *self, PyObject *args)
                     alpha(j - 1, k) + alpha(j + 1, k))/5.0;
     }    
   }
-  
+
   return PyInt_FromLong(1);
 }
 

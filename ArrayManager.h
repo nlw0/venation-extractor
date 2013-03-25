@@ -18,7 +18,11 @@
 #include <Python.h>
 #include "numpy/arrayobject.h"
 
+#include <stdexcept>
+
 class ArrayManager : public TupleStreamExtractable {
+  bool specific_dimensions;
+  int ndim_min, ndim_max;
 public:
   PyArrayObject *array_obj;
 
@@ -55,5 +59,8 @@ public:
   inline double& operator()(npy_int,npy_int,npy_int,npy_int);
 
   ArrayManager& operator=(PyObject* obj);
+
+  void set_dimensions(int);
+  void set_dimensions(int, int);
 };
 #endif /* ARRAYMANAGER_H */
