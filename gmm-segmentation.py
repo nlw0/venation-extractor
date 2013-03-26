@@ -3,13 +3,6 @@ from pylab import *
 import sys
 import Image
 
-
-def mle(x,mu,sig):
-    nf = (2 * pi) ** (-1/2.0) * sig
-    xmu = x - mu
-
-    return nf * exp(-0.5 * (xmu / sig) ** 2)
-
 class WingImage():
 
     def __init__(self, filename):
@@ -24,11 +17,20 @@ class WingImage():
         self.mu = array([0.0, 220.0, 245.0])
         self.sig = 6.0 * ones(3)
 
+    def mixture_components(self, x):
+        out = zeros(3)
+        for c in range(3):
+            nf = ((2 * pi) ** (1/2.0) * self.sig[c]) ** -1
+            xn = (x - self.mu[c])/self.sig[c]
+            out[c] = self.pc[c] * nf * exp(-0.5 * (xn) ** 2)
+        return out
+
+
     def e_step(self):
         for j in range(self.shape[0]):
             for k in range(self.shape[1]):
                 for c in range(3):
-                    self.pcn[j,k,c] = self.pc[c] * mle(self.image[j,k], self.mu[c], self.sig[c])
+                    self.pcn[j,k,:] = self.mixture_components(self.image[j,k])
                 self.pcn[j,k,:] = self.pcn[j,k,:] / self.pcn[j,k,:].sum()
 
 
@@ -87,3 +89,25 @@ if __name__ == '__main__':
     imshow(wing.pcn[:,:,1] / wing.pcn[:,:,1].max(), cmap=cm.bone)
     figure()
     imshow(wing.pcn[:,:,2] / wing.pcn[:,:,2].max(), cmap=cm.bone)
+
+
+
+    figure()
+    dx = 4.0
+    xh = mgrid[:256:dx]
+    hh = hist(wing.image.ravel(), xh)[0]
+    hh = (hh + 0.0) / hh.sum() / dx
+
+    xx = mgrid[0.0:256.1:0.1]
+    comp = array([wing.mixture_components(x) for x in xx])
+
+    figure()
+    ## plot(xh[1:], hh, '-o')
+    # plot(c_[xh, xh].ravel()[:-1], r_[0, c_[hh,hh].ravel()])
+    # plot(xx, comp[:,0])
+    # plot(xx, comp[:,1])
+    # plot(xx, comp[:,2])
+    semilogy(c_[xh, xh].ravel()[:-1], r_[0, c_[hh,hh].ravel()])
+    semilogy(xx, comp[:,0])
+    semilogy(xx, comp[:,1])
+    semilogy(xx, comp[:,2])
